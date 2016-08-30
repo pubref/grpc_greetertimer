@@ -1,3 +1,15 @@
+---
+layout: post
+title: Building gRPC services with bazel and rules_protobuf
+published: true
+permalink: blog/bazel_rules_protobuf
+attribution: Originally written by Paul Johnston.
+author: Paul Cody Johnston
+company: PubRef.org
+company-link: https://pubref.org
+thumbnail: https://avatars3.githubusercontent.com/u/10408150?v=3&s=200
+---
+
 # Building gRPC services with Bazel and rules_protobuf
 
 [gRPC](https://grpc.io) makes it easier to build high-performance
@@ -17,10 +29,10 @@ bazel and makes it easier develop gRPC services by:
    change.
 
 In this post I'll provide background about how bazel works
-([Part I](#part-i-about-bazel)) and how to get started building gRPC
+([Part 1](#part-1-about-bazel)) and how to get started building gRPC
 services with rules_protobuf
-([Part II](#part-ii-building-a-grpc-service-with-rules_protobuf)).  If
-you're already a bazel aficionado, you can skip directly to Part II.
+([Part 2](#part-2-building-a-grpc-service-with-rules_protobuf)).  If
+you're already a bazel aficionado, you can skip directly to Part 2.
 
 To best follow along,
 [install bazel](https://www.bazel.io/versions/master/docs/install.html)
@@ -36,7 +48,7 @@ Great. Let's get started!
 
 ---
 
-# Part I: About Bazel
+# 1: About Bazel
 
 [Bazel](https://www.bazel.io/) is Google's open-source version of
 their internal build tool called "Blaze".  Blaze originated from the
@@ -64,6 +76,8 @@ defines it as a *package*.  `BUILD` files contain *rules* that define
 *targets* which can be selected using the *target pattern syntax*.
 Rules are written in a python-like language called
 [*skylark*](https://bazel.io/versions/master/docs/skylark/index.html).
+
+## 1.1: Package Structure
 
 To illustrate these concepts, let's look at the package structure of
 the
@@ -104,6 +118,8 @@ $ tree -P 'BUILD|WORKSPACE' -I 'third_party|bzl' examples/
     └── proto
         └── BUILD
 ```
+
+## 1.2: Targets
 
 To get a list of targets within the `examples/` folder, use a query.
 This says *"Ok bazel, show me all the callable targets in all packages
@@ -205,14 +221,14 @@ or similar hacks.  Very clean!
 > Note: the gRPC repository also has a BUILD file: `$ bazel query
 > @com_github_grpc_grpc//... --output label_kind`
 
-## Target Pattern Syntax
+## 1.3: Target Pattern Syntax
 
 With those examples under our belt, let's examine the target syntax a
 bit more.  When I first started working with bazel I found the
 target-pattern syntax somewhat intimidating.  It's actually not too
 bad. Here's a closer look:
 
-![](images/target-pattern-syntax.png)
+![](https://github.com/pubref/grpc_greetertimer/blob/master/images/target-pattern-syntax.png)
 
 * The `@` (at-sign) selects an external workspace. These are
   established by
@@ -246,7 +262,7 @@ deps = ["@com_google_guava_guava//jar:jar"]
 deps = ["@com_google_guava_guava//jar"]
 ```
 
-## External Dependencies: Workspace Rules
+## 1.4: External Dependencies: Workspace Rules
 
 Many large organizations check-in in all the required tools,
 compilers, linkers, etc to guarantee correct, repeatable builds.  With
@@ -261,7 +277,7 @@ without bloating your repository.
 > convention the jar artifact `io.grpc:grpc-netty:jar:1.0.0-pre1`
 > becomes `io_grpc_grpc_netty`.
 
-### Workspace Rules that require a pre-existing WORKSPACE
+### 1.4.1: Workspace Rules that require a pre-existing WORKSPACE
 
 These rules assume that the remote resource or URL contains a
 WORKSPACE file at the top of the file tree and BUILD files that define
@@ -280,7 +296,7 @@ rule targets.  These are referred to as *bazel repositories*.
 > look like when unpacked at `$(bazel info
 > execution_root)/external/WORKSPACE_NAME`.
 
-### Workspace Rules that autogenerate a WORKSPACE file for you
+### 1.4.2: Workspace Rules that autogenerate a WORKSPACE file for you
 
 The implementation of these repository rules contain logic to
 autogenerate a WORKSPACE file and BUILD file(s) to make resources
@@ -327,7 +343,7 @@ filegroup(
 > requires it, such as `bazel build
 > examples/helloworld/java/org/pubref/rules_protobuf/examples/helloworld/client`
 
-### Workspace Rules that accept a BUILD file as an argument
+### 1.4.3: Workspace Rules that accept a BUILD file as an argument
 
 If a repository has no BUILD file(s), you can put one into its
 filesystem root to adapt the external resource into bazel's worldview
@@ -347,7 +363,7 @@ graphviz format and pipe this to dot to generate the figure:
                   --output graph | dot -Tpng -O
 ```
 
-![](images/zlib-deps.png)
+![](https://github.com/pubref/grpc_greetertimer/blob/master/images/zlib-deps.png)
 
 So we can see that all grpc-related C code ultimately depends on this
 library.  But, there is no BUILD file in Mark's repo... where did it
@@ -380,7 +396,7 @@ resource.  Awesome!
 > that have custom logic to pull resources from the net and bind it
 > into bazel's view of the universe.
 
-## Bazel Summary
+## 1.5: Bazel Summary
 
 When presented with a command and a target-pattern, bazel goes through
 the following three phases:
@@ -400,13 +416,13 @@ productive.  So let's *make something* already!
 
 ---
 
-# Part II: Building a gRPC service with rules_protobuf
+# 2: Building a gRPC service with rules_protobuf
 
 Let's go ahead and use bazel and rules_protobuf to help build own gRPC
 application. The application will involve communication between two
 different gRPC services:
 
-### Services
+## 2.1: Services
 
 1. **The Greeter service**: This is the familiar "Hello World" starter
    example that accepts a request with a `user` argument and replies
@@ -422,7 +438,7 @@ different gRPC services:
 > consult the
 > [gRPC performance dashboard](https://performance-dot-grpc-testing.appspot.com/explore?dashboard=5760820306771968).
 
-### Compiled Programs
+## 2.2: Compiled Programs
 
 For the demo, we'll use 5 different compiled programs written in 3
 languages:
@@ -440,7 +456,7 @@ languages:
   rules_protobuf already provides these example implementations, so
   we'll just use them directly.
 
-### Protobuf Definitions
+## 2.3: Protobuf Definitions
 
 GreeterTimer accepts a unary `TimerRequest` and streams back a
 sequence of `BatchReponse` until all messages have been processed, at
@@ -512,7 +528,11 @@ The `common.Config` message type is not particularly functional but
 serves to demonstrate the use of imports.  rules_protobuf can help
 with more complex setups having multiple proto → proto dependencies.
 
-## Step 1: Project Layout
+## 2.4: Build the grpc_greetertimer example application.
+
+This demo application can be cloned at https://github.com/pubref/grpc_greetertimer.
+
+### 2.4.1: Create the Project Layout
 
 Here's the directory layout and relevant BUILD files we'll be using:
 
@@ -527,7 +547,7 @@ Here's the directory layout and relevant BUILD files we'll be using:
 ~/grpc_greetertimer$ touch java/org/pubref/grpc/greetertimer/GreeterTimerServer.java
 ```
 
-## Step 2: The WORKSPACE
+### 2.4.2: The WORKSPACE
 
 We'll begin by creating the
 [WORKSPACE](./WORKSPACE)
@@ -571,7 +591,7 @@ store our protocol buffer sources in `//proto`, our java sources in
 > typical `GOCODE` layout having a `src/`, `pkg/`, `bin/`
 > subdirectories.
 
-## Step 3: The GreeterTimer Server
+### 2.4.3: The GreeterTimer Server
 
 The
 [java server's](java/org/pubref/grpc/greetertimer/GreeterTimerServer.java)
@@ -605,7 +625,7 @@ response to the client.
 }
 ```
 
-## Step 4: The GreeterTimer Client
+### 2.4.4: The GreeterTimer Client
 
 The
 [go client](go/main.go)
@@ -634,7 +654,7 @@ func submit(client greeterTimer.GreeterTimerClient, request *greeterTimer.TimerR
 }
 ```
 
-## Step 5: Generate the go protobuf+gRPC code
+### 2.4.5: Generate the go protobuf+gRPC code
 
 In our `//proto:BUILD` file, we have a `go_proto_library` rule loaded
 from the rules_protobuf repository.  Internally, the rule declares to
@@ -705,7 +725,7 @@ files for the `//proto:go_default_library` have not been built.
 5. Compile the generated `greetertimer.pb.go` with the client
    `main.go` file, creating the `bazel-bin/go/client` executable.
 
-## Step 6: Generate the java protobuf libraries
+### 2.4.6: Generate the java protobuf libraries
 
 The `java_proto_library` rule is functionally identical to the
 `go_proto_library` rule.  However, instead of providing a `*.pb.go`
@@ -751,7 +771,7 @@ target* of the `:server` rule.  When invoked this way, bazel will pack
 up all the required classes and generate a standalone executable jar
 that can be run independently in a jvm.
 
-## Step 7: Run it
+### 2.4.7: Run it!
 
 First, we'll start a greeter server (choose one):
 
@@ -832,7 +852,7 @@ also very consistent, but slightly slower than C++.  Java demonstrated
 some initial relative slowness likely due to the JVM warming up but
 soon converged on timings similar to the C++ implementation.
 
-## Summary
+## 2.5: Summary
 
 Bazel assists in the construction of gRPC applications by providing a
 capable build environment for services built in a multitude of
@@ -841,11 +861,19 @@ dependencies needed and abstracting away the need to call protoc
 directly.
 
 In this workflow one does need to check in the generated source code
-as it is always generated on-demand within your workspace.
+as it is always generated on-demand within your workspace.  For
+projects that do need this, one can manually copy over the generated
+files or use the `output_to_workspace` option to place the generated
+files alongside the protobuf definitions.
 
-For projects that do need this, one can manually copy over the
-generated files or use the `output_to_workspace` option to place the
-generated files alongside the protobuf definitions.
+In addition to helping with c++, java, and golang code, rules_protobuf
+also supports (in part) javascript, ruby, and python.  Finally, it has
+full support for the
+[grpc-gateway](https://github.com/grpc-ecosystem/grpc-gateway) project
+via the
+[grpc_gateway_proto_library](https://github.com/pubref/rules_protobuf/tree/master/bzl/grpc_gateway)
+and
+[grpc_gateway_binary(https://github.com/pubref/rules_protobuf/tree/master/bzl/grpc_gateway) rules.
 
 And... that's a wrap.  Happy procedure calling!
 
