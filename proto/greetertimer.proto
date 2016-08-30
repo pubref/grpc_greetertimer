@@ -1,0 +1,49 @@
+
+syntax = "proto3";
+
+option java_package = "org.pubref.grpc.greetertimer";
+option java_outer_classname = "GreetertimerProto";
+option java_multiple_files = true;
+option java_generate_equals_and_hash = true;
+
+package greetertimer;
+
+message TimerRequest {
+
+  // the host where the grpc server is running
+  string host = 1;
+  
+  // The port of the grpc server
+  int32 port = 2;
+
+  // The total number of greetings to send
+  int32 totalSize = 3;
+
+  // The number of checks that should be completed before responding with a response message.
+  int32 batchSize = 4;
+  
+}
+
+message BatchResponse {
+
+  // The number of checks that are remaining, calculated relative to
+  // totalChecks in the request.
+  int32 remaining = 1;
+
+  // The number of checks actually performed in this batch.
+  int32 batchCount = 2;
+
+  // The number of checks that failed.
+  int32 errCount = 3;
+  
+  // The total time spent, expressed as a number of milliseconds per
+  // request batch size (total time spent performing batchSize number
+  // of health checks).
+  int64 batchTimeMillis = 4;
+  
+}
+
+service GreeterTimer {
+  // One request followed by multiple responses, set by the batch size.
+  rpc timeGreetings(TimerRequest) returns (stream BatchResponse);
+}
