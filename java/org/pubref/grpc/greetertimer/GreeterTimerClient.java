@@ -138,7 +138,7 @@ public class GreeterTimerClient {
         TimerRequest.newBuilder()
             .setHost("localhost")
             .setPort(50051)
-            .setTotal(10000)
+            .setTotalSize(10000)
             .setBatchSize(1000);
 
     for (int i = 0; i < args.length; i++) {
@@ -154,7 +154,7 @@ public class GreeterTimerClient {
       } else if ("--greeter_port".equals(arg)) {
         builder.setPort(intArg(args, ++i));
       } else if ("--total".equals(arg)) {
-        builder.setTotal(intArg(args, ++i));
+        builder.setTotalSize(intArg(args, ++i));
       } else if ("--batch".equals(arg)) {
         builder.setBatchSize(intArg(args, ++i));
       } else {
