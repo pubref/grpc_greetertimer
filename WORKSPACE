@@ -1,14 +1,28 @@
 workspace(name = "org_pubref_grpc_greetertimer")
 
+# This is necessary as the java proto target pulls in rules_protobuf
+# example/helloworld/proto:BUILD file that has a reference to
+# csharp_proto_library.  csharp target aren't actually used in this
+# repo directly.
 git_repository(
     name = "io_bazel_rules_dotnet",
-    commit = "b23e796dd0be27f35867590309d79ffe278d4eeb",
-    remote = "https://github.com/pcj/rules_dotnet.git",
+    commit = "f8950cbf9456df79920514325c17139355d13671",
+    remote = "https://github.com/bazelbuild/rules_dotnet.git",
 )
 
 load("@io_bazel_rules_dotnet//dotnet:csharp.bzl", "csharp_repositories")
 
 csharp_repositories(use_local_mono = True)
+
+git_repository(
+    name = "org_pubref_rules_node",
+    commit = "d93a80ac4920c52da8adccbca66a3118a27018fd",  # Oct 2, 2016
+    remote = "https://github.com/pubref/rules_node.git",
+)
+
+load("@org_pubref_rules_node//node:rules.bzl", "node_repositories")
+
+node_repositories()
 
 # ================================================================
 
@@ -38,9 +52,9 @@ go_repositories()
 # ================================================================
 
 git_repository(
-     name = "org_pubref_rules_protobuf",
-     commit = "f95606f514a4ca919473f74d8a6e8f9a699c6809",
-     remote = "https://github.com/pubref/rules_protobuf.git",
+    name = "org_pubref_rules_protobuf",
+    tag = "v0.6.3",
+    remote = "https://github.com/pubref/rules_protobuf.git",
 )
 
 load("@org_pubref_rules_protobuf//go:rules.bzl", "go_proto_repositories")
