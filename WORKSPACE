@@ -6,7 +6,7 @@ workspace(name = "org_pubref_grpc_greetertimer")
 # repo directly.
 git_repository(
     name = "io_bazel_rules_dotnet",
-    commit = "f8950cbf9456df79920514325c17139355d13671",
+    commit = "1a6ca96fe05bca83782464453ac4657fb8ed8379",
     remote = "https://github.com/bazelbuild/rules_dotnet.git",
 )
 
@@ -16,7 +16,7 @@ csharp_repositories(use_local_mono = True)
 
 git_repository(
     name = "org_pubref_rules_node",
-    commit = "d93a80ac4920c52da8adccbca66a3118a27018fd",  # Oct 2, 2016
+    commit = "1c60708c599e6ebd5213f0987207a1d854f13e23",  # Mar 12, 2018
     remote = "https://github.com/pubref/rules_node.git",
 )
 
@@ -28,13 +28,14 @@ node_repositories()
 
 http_archive(
     name = "io_bazel_rules_closure",
-    sha256 = "59498e75805ad8767625729b433b9409f80d0ab985068d513f880fc1928eb39f",
-    strip_prefix = "rules_closure-0.3.0",
-    url = "http://bazel-mirror.storage.googleapis.com/github.com/bazelbuild/rules_closure/archive/0.3.0.tar.gz",
+    sha256 = "b29a8bc2cb10513c864cb1084d6f38613ef14a143797cea0af0f91cd385f5e8c",
+    strip_prefix = "rules_closure-0.8.0",
+    urls = [
+        "https://mirror.bazel.build/github.com/bazelbuild/rules_closure/archive/0.8.0.tar.gz",
+        "https://github.com/bazelbuild/rules_closure/archive/0.8.0.tar.gz",
+    ],
 )
-
 load("@io_bazel_rules_closure//closure:defs.bzl", "closure_repositories")
-
 closure_repositories()
 
 # ================================================================
@@ -42,18 +43,19 @@ closure_repositories()
 git_repository(
     name = "io_bazel_rules_go",
     remote = "https://github.com/bazelbuild/rules_go.git",
-    tag = "0.2.0",
+    tag = "0.10.3",
 )
 
-load("@io_bazel_rules_go//go:def.bzl", "go_repositories")
-
-go_repositories()
+load("@io_bazel_rules_go//go:def.bzl", "go_rules_dependencies", "go_register_toolchains")
+go_rules_dependencies()
+go_register_toolchains()
 
 # ================================================================
 
 git_repository(
     name = "org_pubref_rules_protobuf",
-    tag = "v0.6.3",
+    #tag = "v0.8.2",
+    commit = "5cae42382b620aa1e347ecf30b3e92fd0d97998c", # Jun 23, 2018
     remote = "https://github.com/pubref/rules_protobuf.git",
 )
 
